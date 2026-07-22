@@ -1,16 +1,87 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Identity Generator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+    <link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="main-card">
+            
+            <!-- Hero Section -->
+            <div class="hero">
+                <div class="hero-bg-glow"></div>
+                <div class="hero-content">
+                    <h1>Identity Generator</h1>
+                    <p>Create offline test identities instantly with random names and generated emails.</p>
+                </div>
+                <button id="generate-btn" class="generate-btn">
+                    <span class="btn-icon">&gt;_</span> Generate Identity
+                </button>
+            </div>
 
+            <!-- Settings Strip -->
+            <div class="settings-strip">
+                <div class="settings-label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span>Settings</span>
+                </div>
+                
+                <div class="settings-controls">
+                    <div class="gender-control">
+                        <span class="control-label">Gender</span>
+                        <div class="segmented-control" id="gender-select">
+                            <button data-value="random" class="active">Random</button>
+                            <button data-value="female">Female</button>
+                            <button data-value="male">Male</button>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-controls">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="use-numbers" checked>
+                            <div class="checkbox-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <span>Numbers</span>
+                        </label>
+                        
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="multiple-formats" checked>
+                            <div class="checkbox-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <span>Multiple Formats</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="main-content">
+                <div class="history-column">
+                    <div class="history-header">
+                        <span>Recent</span>
+                    </div>
+                    <div class="history-list custom-scrollbar" id="history-list">
+                        <!-- History items injected here -->
+                    </div>
+                </div>
+
+                <div class="display-column" id="display-column">
+                    <!-- Data display injected here -->
+                    <div class="empty-state">No identity generated yet.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="./script.js"></script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
