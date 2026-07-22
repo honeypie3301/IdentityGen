@@ -13,17 +13,22 @@ A clean, offline-first web application that generates random realistic identitie
 - **Premium Design:** Clean typography (Inter font), smooth Framer Motion animations, large border radii, and soft shadows.
 - **Dark Mode:** Built-in Light/Dark mode toggle that persists to `localStorage`.
 
-## Deployment (GitHub Pages)
-
-This project is configured out-of-the-box for GitHub Pages. 
-
-To deploy:
-1. Run `npm run build`
-2. The generated `dist` folder can be uploaded to GitHub or published directly to GitHub Pages. It uses relative base paths (`base: './'`), so it works on custom domains or GitHub subdirectories.
-
 ## Tech Stack
-- React 19
-- Vite
-- Tailwind CSS (v4)
-- Lucide React (Icons)
-- Framer Motion (Animations)
+- Vanilla HTML, CSS, JavaScript
+- No build tools required (fully static)
+
+## Deployment
+
+Because this app consists solely of pure static files (HTML, CSS, JS), it can be deployed anywhere immediately.
+
+### Deploying to Vercel
+1. Push this code to a GitHub repository.
+2. Log in to [Vercel](https://vercel.com/) and click **Add New... > Project**.
+3. Import your GitHub repository.
+4. Leave all build settings as their defaults and click **Deploy**.
+
+### Deploying to GitHub Pages
+1. Push this code to your GitHub repository.
+2. Go to your repository **Settings** > **Pages**.
+3. Under **Build and deployment**, set the Source to **Deploy from a branch**.
+4. Select the `main` branch and `/ (root)` folder, then click **Save**.
