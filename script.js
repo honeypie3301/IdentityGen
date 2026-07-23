@@ -45,6 +45,15 @@ const maleNames = [
   const copyIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
   const checkIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
   
+  function generatePassword() {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+      let password = "";
+      for (let i = 0; i < 12; i++) {
+          password += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return password;
+  }
+  
   function generateIdentity() {
       let firstNamesList = maleNames;
       let selectedGender = 'male';
@@ -76,16 +85,19 @@ const maleNames = [
       }
   
       if (options.useNumbers) {
-          formats.push(`${fLow}${Math.floor(Math.random() * 8999) + 1000}@gmail.com`);
+          const r1 = Math.floor(Math.random() * 8999999) + 1000000;
+          const r2 = Math.floor(Math.random() * 89999) + 10000;
+          formats.push(`${fLow}${r1}@gmail.com`);
           if (options.multipleFormats) {
-              formats.push(`${fLow}.${lLow}${Math.floor(Math.random() * 99) + 1}@gmail.com`);
+              formats.push(`${fLow}.${lLow}${r2}@gmail.com`);
           }
       }
       
       const email = formats[Math.floor(Math.random() * formats.length)];
       
+      const password = generatePassword();
       const id = Math.random().toString(36).substring(2, 9);
-      const newIdentity = { id, firstName: first, lastName: last, email, gender: selectedGender };
+      const newIdentity = { id, firstName: first, lastName: last, email, gender: selectedGender, password };
       
       currentIdentity = newIdentity;
       historyList.unshift(newIdentity);
@@ -133,7 +145,7 @@ const maleNames = [
           return;
       }
   
-      const { firstName, lastName, email, gender } = currentIdentity;
+      const { firstName, lastName, email, gender, password } = currentIdentity;
       const formattedGender = gender.charAt(0).toUpperCase() + gender.slice(1);
       
       displayCol.innerHTML = `
@@ -151,6 +163,7 @@ const maleNames = [
                   ${createFieldRow('First Name', firstName)}
                   ${createFieldRow('Last Name', lastName)}
                   ${createFieldRow('Email Address', email)}
+                  ${createFieldRow('Password', password)}
                   ${createFieldRow('Gender', formattedGender)}
               </div>
           </div>
@@ -158,7 +171,7 @@ const maleNames = [
   
       // Attach Copy Handlers
       document.getElementById('copy-all-btn').onclick = function() {
-          const text = `First Name: ${firstName}\nLast Name: ${lastName}\nEmail: ${email}\nGender: ${formattedGender}`;
+          const text = `First Name: ${firstName}\nLast Name: ${lastName}\nEmail: ${email}\nPassword: ${password}\nGender: ${formattedGender}`;
           copyToClipboard(text, this, `${copyIcon} Copy All`);
       };
   
