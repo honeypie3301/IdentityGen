@@ -1,34 +1,20 @@
-# Identity Generator
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+</div>
 
-A clean, offline-first web application that generates random realistic identities, inspired by premium macOS and developer utilities (Linear, Raycast).
+# Run and deploy your AI Studio app
 
-## Features
+This contains everything you need to run your app locally.
 
-- **100% Client-Side:** No backend, databases, or external APIs are used. Everything is processed instantly in the browser.
-- **Robust Generator:** 
-  - Choose between Male, Female, or Random gender identities.
-  - Generates multiple realistic Gmail combinations with optional numeric variations.
-- **Copy Utilities:** One-click copy buttons for individual fields and a "Copy All" function.
-- **History Tracking:** Automatically keeps track of your last 20 generated identities for easy retrieval.
-- **Premium Design:** Clean typography (Inter font), smooth Framer Motion animations, large border radii, and soft shadows.
-- **Dark Mode:** Built-in Light/Dark mode toggle that persists to `localStorage`.
+View your app in AI Studio: https://ai.studio/apps/dec12756-59e6-4319-b580-bfb3a6bd3053
 
-## Tech Stack
-- Vanilla HTML, CSS, JavaScript
-- No build tools required (fully static)
+## Run Locally
 
-## Deployment
+**Prerequisites:**  Node.js
 
-Because this app consists solely of pure static files (HTML, CSS, JS), it can be deployed anywhere immediately.
 
-### Deploying to Vercel
-1. Push this code to a GitHub repository.
-2. Log in to [Vercel](https://vercel.com/) and click **Add New... > Project**.
-3. Import your GitHub repository.
-4. Leave all build settings as their defaults and click **Deploy**.
-
-### Deploying to GitHub Pages
-1. Push this code to your GitHub repository.
-2. Go to your repository **Settings** > **Pages**.
-3. Under **Build and deployment**, set the Source to **Deploy from a branch**.
-4. Select the `main` branch and `/ (root)` folder, then click **Save**.
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

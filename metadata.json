@@ -1,6 +1,6 @@
 {
   "name": "IdentityGen",
-  "description": "A completely offline web application that generates random first names, last names, and Gmail addresses.",
+  "description": "A completely offline web application that generates random first names, last names, Gmail addresses, and passwords with instant copy and batch export.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
