@@ -1,20 +1,11 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# IdentityGen
 
-# Run and deploy your AI Studio app
+IdentityGen is an offline-first web application that generates random test identities—including first names, last names, Gmail addresses, and custom-length passwords—directly in the browser.
 
-This contains everything you need to run your app locally.
+## What It Does
 
-View your app in AI Studio: https://ai.studio/apps/dec12756-59e6-4319-b580-bfb3a6bd3053
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- Generates random or gender-specific (`Random`, `Female`, `Male`) test profiles completely client-side with zero network calls.
+- Produces Gmail address variations with optional numeric suffixes and dot/reversed name formats.
+- Generates customizable passwords (6–64 characters, with quick `12`, `16`, and `20` presets) and supports one-click copy for individual fields or the full identity block.
+- Stores the last 20 generated identities in a local memory bank with batch generation (`+5`, `+10`, `+20`) and export to `JSON`, `CSV`, or `TXT`.
+- Includes persistent Silver (light) and Graphite (dark) finishes plus keyboard shortcuts (`Space` to generate, `C` to copy all, `1–5` to copy fields).
