@@ -25,7 +25,7 @@ export const FieldGuideSection: React.FC = () => {
         </div>
 
         <p className="font-mono text-[11px] text-[#6B6B66] dark:text-[#8E8E88]">
-          100% Local Browser Synthesis · Zero Network Requests
+          Online Name Pool + Local .txt Fallback · Client-Side Synthesis
         </p>
       </div>
     </section>

@@ -1,12 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { Check, Copy, Eye, EyeOff, RefreshCw, Sun, Moon, Trash2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Check,
+  Copy,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  RotateCw,
+  Sun,
+  Moon,
+  Trash2,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   GenderOption,
   GeneratorOptions,
   IdentityRecord,
+  estimatePasswordEntropy,
   formatIdentityPlain,
 } from '../data/identities';
+import { NameDatabaseStats } from '../data/nameDatabase';
 import { TactileSwitch } from './TactileSwitch';
 
 interface InstrumentDeckProps {
@@ -16,7 +28,9 @@ interface InstrumentDeckProps {
   currentIdentity: IdentityRecord | null;
   onSelectIdentity: (item: IdentityRecord) => void;
   onGenerate: () => void;
+  onRegeneratePassword: () => void;
   onClearHistory: () => void;
+  dbStats: NameDatabaseStats;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
 }
@@ -28,7 +42,9 @@ export const InstrumentDeck: React.FC<InstrumentDeckProps> = ({
   currentIdentity,
   onSelectIdentity,
   onGenerate,
+  onRegeneratePassword,
   onClearHistory,
+  dbStats,
   theme,
   onToggleTheme,
 }) => {
@@ -39,6 +55,11 @@ export const InstrumentDeck: React.FC<InstrumentDeckProps> = ({
   useEffect(() => {
     setLengthInput(String(options.passwordLength));
   }, [options.passwordLength]);
+
+  const passwordEntropy = useMemo(
+    () => (currentIdentity ? estimatePasswordEntropy(currentIdentity.password) : null),
+    [currentIdentity]
+  );
 
   const handleCopy = async (key: string, value: string) => {
     try {
@@ -70,6 +91,13 @@ export const InstrumentDeck: React.FC<InstrumentDeckProps> = ({
   ];
 
   const passwordLengthChoices = [12, 16, 20];
+
+  const poolSourceLabel =
+    dbStats.source === 'online+local'
+      ? 'Online + Local Pool'
+      : dbStats.source === 'local-file'
+      ? 'Local File Pool'
+      : 'Embedded Fallback';
 
   const fieldRows = currentIdentity
     ? [
@@ -109,13 +137,34 @@ export const InstrumentDeck: React.FC<InstrumentDeckProps> = ({
       ]
     : [];
 
+  const activeSegments =
+    passwordEntropy?.strength === 'strong'
+      ? 3
+      : passwordEntropy?.strength === 'good'
+      ? 2
+      : 1;
+
+  const strengthTextColor =
+    passwordEntropy?.strength === 'strong'
+      ? 'text-[#15803D] dark:text-[#4ADE80]'
+      : passwordEntropy?.strength === 'good'
+      ? 'text-[#B45309] dark:text-[#FBBF24]'
+      : 'text-[#B91C1C] dark:text-[#F87171]';
+
+  const strengthBarColor =
+    passwordEntropy?.strength === 'strong'
+      ? 'bg-[#16A34A] dark:bg-[#22C55E]'
+      : passwordEntropy?.strength === 'good'
+      ? 'bg-[#D97706] dark:bg-[#F59E0B]'
+      : 'bg-[#DC2626] dark:bg-[#EF4444]';
+
   return (
     <section id="instrument" className="mx-auto max-w-[1200px] px-4 pt-4 pb-4 sm:px-6 lg:px-8">
       {/* Compact Intro & Chassis Utility Toolbar */}
       <div className="mb-3.5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-mono text-[#6B6B66] dark:text-[#9E9E98] tracking-wide">
-            Offline Test Utility · Client-Side Synthesis · 20-Slot Memory
+          <p className="text-xs font-mono text-[#6B6B66] dark:text-[#9E9E98] tracking-wide tabular-nums">
+            {poolSourceLabel} · {dbStats.totalNames.toLocaleString()} names · 20-Slot Memory
           </p>
           <h1 className="mt-0.5 text-2xl sm:text-3xl font-bold tracking-tight text-[#161615] dark:text-[#F2F2F0] [text-wrap:balance]">
             Identity Synthesizer
@@ -302,7 +351,7 @@ export const InstrumentDeck: React.FC<InstrumentDeckProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="hardware-scroll flex-1 max-h-[205px] lg:max-h-[220px] overflow-y-auto divide-y divide-[#EFEFEA] dark:divide-[#242421]">
+                <div className="hardware-scroll flex-1 max-h-[205px] lg:max-h-[225px] overflow-y-auto divide-y divide-[#EFEFEA] dark:divide-[#242421]">
                   {historyList.map((item, idx) => {
                     const isActive = currentIdentity?.id === item.id;
                     const slotLabel = String(idx + 1).padStart(2, '0');
@@ -356,7 +405,7 @@ export const InstrumentDeck: React.FC<InstrumentDeckProps> = ({
                   No active identity loaded
                 </p>
                 <p className="mt-1.5 text-sm text-[#6B6B66] dark:text-[#9E9E98] max-w-sm">
-                  Press Generate Identity or hit Space to synthesize a fresh test identity locally.
+                  Press Generate Identity or hit Space to synthesize a fresh test identity.
                 </p>
                 <button
                   type="button"
@@ -451,16 +500,43 @@ export const InstrumentDeck: React.FC<InstrumentDeckProps> = ({
                         className="flex items-center justify-between gap-3 px-4 py-2.5 sm:px-6 hover:bg-[#F9F9F7] dark:hover:bg-[#1F1F1D] transition-colors duration-150"
                       >
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 text-xs text-[#6B6B66] dark:text-[#9E9E98]">
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-[#6B6B66] dark:text-[#9E9E98]">
                             <span className="font-mono tabular-nums text-[#8C8C85] dark:text-[#6E6E68]">
                               [{row.shortcut}]
                             </span>
                             <span className="font-medium">{row.label}</span>
-                            {row.isPassword && (
+                            {row.isPassword && passwordEntropy && (
                               <>
                                 <span aria-hidden="true">·</span>
                                 <span className="font-mono tabular-nums">
                                   {row.value.length} chars
+                                </span>
+                                <span aria-hidden="true">·</span>
+                                <span
+                                  className="inline-flex items-center gap-1.5"
+                                  aria-label={`Password strength: ${passwordEntropy.label}, ${passwordEntropy.bits} bits of entropy`}
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    className="inline-flex items-center gap-0.5"
+                                  >
+                                    {[1, 2, 3].map((segment) => (
+                                      <span
+                                        key={segment}
+                                        className={`h-1.5 w-3.5 rounded-[1px] transition-colors duration-150 ${
+                                          segment <= activeSegments
+                                            ? strengthBarColor
+                                            : 'bg-[#D6D6D2] dark:bg-[#2F2F2C]'
+                                        }`}
+                                      />
+                                    ))}
+                                  </span>
+                                  <span className={`font-semibold ${strengthTextColor}`}>
+                                    {passwordEntropy.label}
+                                  </span>
+                                  <span className="font-mono tabular-nums text-[#6B6B66] dark:text-[#8E8E88]">
+                                    ({passwordEntropy.bits} bits)
+                                  </span>
                                 </span>
                               </>
                             )}
@@ -470,26 +546,38 @@ export const InstrumentDeck: React.FC<InstrumentDeckProps> = ({
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0">
                           {row.isPassword && (
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword((prev) => !prev)}
-                              aria-label={showPassword ? 'Hide password' : 'Show password'}
-                              className="hardware-keycap inline-flex min-h-[36px] min-w-[36px] items-center justify-center gap-1.5 rounded-sm border border-[#D6D6D2] bg-[#F7F7F5] px-2.5 py-1.5 text-xs font-medium text-[#5A5A55] hover:border-[#161615] hover:text-[#161615] dark:border-[#333330] dark:bg-[#222220] dark:text-[#A3A39D] dark:hover:border-[#6B6B66] dark:hover:text-[#F2F2F0] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#FF4D00]"
-                            >
-                              {showPassword ? (
-                                <>
-                                  <EyeOff className="h-3.5 w-3.5" />
-                                  <span className="hidden sm:inline">Hide</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Eye className="h-3.5 w-3.5" />
-                                  <span className="hidden sm:inline">Show</span>
-                                </>
-                              )}
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={onRegeneratePassword}
+                                title="Regenerate password"
+                                aria-label="Regenerate password"
+                                className="hardware-keycap inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-sm border border-[#D6D6D2] bg-[#F7F7F5] px-2.5 py-1.5 text-xs font-medium text-[#5A5A55] hover:border-[#161615] hover:text-[#161615] dark:border-[#333330] dark:bg-[#222220] dark:text-[#A3A39D] dark:hover:border-[#6B6B66] dark:hover:text-[#F2F2F0] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#FF4D00]"
+                              >
+                                <RotateCw className="h-3.5 w-3.5" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                className="hardware-keycap inline-flex min-h-[36px] min-w-[36px] items-center justify-center gap-1.5 rounded-sm border border-[#D6D6D2] bg-[#F7F7F5] px-2.5 py-1.5 text-xs font-medium text-[#5A5A55] hover:border-[#161615] hover:text-[#161615] dark:border-[#333330] dark:bg-[#222220] dark:text-[#A3A39D] dark:hover:border-[#6B6B66] dark:hover:text-[#F2F2F0] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#FF4D00]"
+                              >
+                                {showPassword ? (
+                                  <>
+                                    <EyeOff className="h-3.5 w-3.5" />
+                                    <span className="hidden sm:inline">Hide</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="h-3.5 w-3.5" />
+                                    <span className="hidden sm:inline">Show</span>
+                                  </>
+                                )}
+                              </button>
+                            </>
                           )}
 
                           <button

@@ -1,3 +1,5 @@
+import { sampleFirstName, sampleLastName } from './nameDatabase';
+
 export type GenderOption = 'random' | 'female' | 'male';
 
 export interface GeneratorOptions {
@@ -17,70 +19,159 @@ export interface IdentityRecord {
   createdAt: string;
 }
 
-export const maleNames = [
-  "James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas", "Charles",
-  "Christopher", "Daniel", "Matthew", "Anthony", "Mark", "Donald", "Steven", "Paul", "Andrew", "Joshua",
-  "Kenneth", "Kevin", "Brian", "George", "Edward", "Ronald", "Timothy", "Jason", "Jeffrey", "Ryan",
-  "Jacob", "Gary", "Nicholas", "Eric", "Jonathan", "Stephen", "Larry", "Justin", "Scott", "Brandon",
-  "Benjamin", "Samuel", "Gregory", "Frank", "Alexander", "Raymond", "Patrick", "Jack", "Dennis", "Jerry",
-  "Tyler", "Aaron", "Jose", "Adam", "Henry", "Nathan", "Douglas", "Zachary", "Peter", "Kyle", "Walter",
-  "Ethan", "Jeremy", "Christian", "Keith", "Roger", "Terry", "Gerald", "Sean", "Arthur", "Lawrence",
-  "Dylan", "Jesse", "Austin", "Bruce", "Joe", "Gabriel", "Logan", "Albert", "Willie", "Alan", "Juan",
-  "Wayne", "Elijah", "Randy", "Roy", "Vincent", "Ralph", "Eugene", "Russell", "Bobby", "Mason", "Philip"
-];
+export type PasswordStrengthLevel = 'weak' | 'good' | 'strong';
 
-export const femaleNames = [
-  "Mary", "Patricia", "Jennifer", "Linda", "Elizabeth", "Barbara", "Susan", "Jessica", "Sarah", "Karen",
-  "Nancy", "Lisa", "Betty", "Margaret", "Sandra", "Ashley", "Kimberly", "Emily", "Donna", "Michelle",
-  "Dorothy", "Carol", "Amanda", "Melissa", "Deborah", "Stephanie", "Rebecca", "Sharon", "Laura",
-  "Cynthia", "Kathleen", "Amy", "Shirley", "Angela", "Helen", "Anna", "Brenda", "Pamela", "Nicole",
-  "Emma", "Samantha", "Katherine", "Christine", "Debra", "Rachel", "Catherine", "Carolyn", "Janet",
-  "Ruth", "Maria", "Heather", "Diane", "Virginia", "Julie", "Joyce", "Victoria", "Olivia", "Kelly",
-  "Christina", "Lauren", "Joan", "Evelyn", "Judith", "Megan", "Cheryl", "Andrea", "Hannah", "Martha",
-  "Jacqueline", "Lucille", "Frances", "Gloria", "Ann", "Teresa", "Kathryn", "Sara", "Janice", "Jean",
-  "Alice", "Madison", "Doris", "Abigail", "Julia", "Judy", "Grace", "Denise", "Amber", "Marilyn", "Beverly"
-];
-
-export const lastNames = [
-  "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez",
-  "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson",
-  "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis",
-  "Robinson", "Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill",
-  "Flores", "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell", "Carter",
-  "Roberts", "Gomez", "Phillips", "Evans", "Turner", "Diaz", "Parker", "Cruz", "Edwards", "Collins",
-  "Reyes", "Stewart", "Morris", "Morales", "Murphy", "Cook", "Rogers", "Gutierrez", "Ortiz", "Morgan",
-  "Cooper", "Peterson", "Bailey", "Reed", "Kelly", "Howard", "Ramos", "Kim", "Cox", "Ward", "Richardson",
-  "Watson", "Brooks", "Chavez", "Wood", "James", "Bennett", "Gray", "Mendoza", "Ruiz", "Hughes", "Price"
-];
-
-export function generatePassword(length: number = 12): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-  let password = "";
-  for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
+export interface PasswordEntropyEstimate {
+  bits: number;
+  strength: PasswordStrengthLevel;
+  label: 'Weak' | 'Good' | 'Strong';
+  poolSize: number;
 }
 
-export function generateIdentity(options: GeneratorOptions): IdentityRecord {
-  let firstNamesList = maleNames;
-  let selectedGender: 'male' | 'female' = 'male';
+const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const LOWER = 'abcdefghijklmnopqrstuvwxyz';
+const DIGITS = '0123456789';
+const SYMBOLS = '!@#$%^&*';
+const ALL_CHARS = UPPER + LOWER + DIGITS + SYMBOLS;
 
-  if (options.gender === 'female') {
-    firstNamesList = femaleNames;
-    selectedGender = 'female';
-  } else if (options.gender === 'random') {
-    if (Math.random() > 0.5) {
-      firstNamesList = femaleNames;
-      selectedGender = 'female';
+function secureRandomInt(maxExclusive: number): number {
+  if (maxExclusive <= 1) return 0;
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const limit = Math.floor(0x100000000 / maxExclusive) * maxExclusive;
+    const buf = new Uint32Array(1);
+    while (true) {
+      crypto.getRandomValues(buf);
+      if (buf[0] < limit) {
+        return buf[0] % maxExclusive;
+      }
+    }
+  }
+  return Math.floor(Math.random() * maxExclusive);
+}
+
+export function generatePassword(length: number = 12): string {
+  const safeLength = Math.min(64, Math.max(6, Math.round(length)));
+  const chars: string[] = [
+    UPPER[secureRandomInt(UPPER.length)],
+    LOWER[secureRandomInt(LOWER.length)],
+    DIGITS[secureRandomInt(DIGITS.length)],
+    SYMBOLS[secureRandomInt(SYMBOLS.length)],
+  ];
+
+  while (chars.length < safeLength) {
+    chars.push(ALL_CHARS[secureRandomInt(ALL_CHARS.length)]);
+  }
+
+  // Fisher-Yates shuffle via CSPRNG
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = secureRandomInt(i + 1);
+    const tmp = chars[i];
+    chars[i] = chars[j];
+    chars[j] = tmp;
+  }
+
+  return chars.join('');
+}
+
+export function estimatePasswordEntropy(password: string): PasswordEntropyEstimate {
+  const length = password.length;
+  if (length === 0) {
+    return { bits: 0, strength: 'weak', label: 'Weak', poolSize: 0 };
+  }
+
+  let hasLower = false;
+  let hasUpper = false;
+  let hasDigit = false;
+  let hasSymbol = false;
+  let hasExtendedSymbol = false;
+  const uniqueChars = new Set<string>();
+
+  for (let i = 0; i < length; i++) {
+    const ch = password[i];
+    uniqueChars.add(ch);
+    const code = ch.charCodeAt(0);
+    if (code >= 97 && code <= 122) {
+      hasLower = true;
+    } else if (code >= 65 && code <= 90) {
+      hasUpper = true;
+    } else if (code >= 48 && code <= 57) {
+      hasDigit = true;
+    } else {
+      hasSymbol = true;
+      if (!SYMBOLS.includes(ch)) {
+        hasExtendedSymbol = true;
+      }
     }
   }
 
-  const first = firstNamesList[Math.floor(Math.random() * firstNamesList.length)] || "John";
-  const last = lastNames[Math.floor(Math.random() * lastNames.length)] || "Doe";
+  const poolSize =
+    (hasLower ? 26 : 0) +
+    (hasUpper ? 26 : 0) +
+    (hasDigit ? 10 : 0) +
+    (hasSymbol ? (hasExtendedSymbol ? 32 : SYMBOLS.length) : 0);
 
-  const fLow = first.toLowerCase().replace(/[^a-z]/g, '');
-  const lLow = last.toLowerCase().replace(/[^a-z]/g, '');
+  let rawBits = poolSize > 1 ? length * Math.log2(poolSize) : 0;
+
+  // Penalize low unique-character diversity (e.g., repeated patterns)
+  const expectedSpace = Math.min(length, Math.max(1, poolSize));
+  const diversityRatio = uniqueChars.size / expectedSpace;
+  if (diversityRatio < 0.55) {
+    rawBits *= diversityRatio / 0.55;
+  }
+
+  // Penalize consecutive identical runs (e.g., "aaa")
+  let consecutiveRepeats = 0;
+  for (let i = 1; i < length; i++) {
+    if (password[i] === password[i - 1]) {
+      consecutiveRepeats++;
+    }
+  }
+  rawBits -= consecutiveRepeats * 3.5;
+
+  // Penalize 3+ monotonic ascending/descending sequences (e.g., "abc", "321")
+  let sequencePenalty = 0;
+  for (let i = 2; i < length; i++) {
+    const d1 = password.charCodeAt(i - 1) - password.charCodeAt(i - 2);
+    const d2 = password.charCodeAt(i) - password.charCodeAt(i - 1);
+    if ((d1 === 1 && d2 === 1) || (d1 === -1 && d2 === -1)) {
+      sequencePenalty += 4;
+    }
+  }
+  rawBits -= sequencePenalty;
+
+  const bits = Math.max(0, Math.round(rawBits));
+
+  if (bits < 55) {
+    return { bits, strength: 'weak', label: 'Weak', poolSize };
+  }
+  if (bits < 80) {
+    return { bits, strength: 'good', label: 'Good', poolSize };
+  }
+  return { bits, strength: 'strong', label: 'Strong', poolSize };
+}
+
+function normalizeEmailToken(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+}
+
+export function generateIdentity(options: GeneratorOptions): IdentityRecord {
+  let selectedGender: 'male' | 'female' = 'male';
+
+  if (options.gender === 'female') {
+    selectedGender = 'female';
+  } else if (options.gender === 'random') {
+    selectedGender = Math.random() > 0.5 ? 'female' : 'male';
+  }
+
+  const first = sampleFirstName(selectedGender) || 'John';
+  const last = sampleLastName() || 'Doe';
+
+  const fLow = normalizeEmailToken(first) || 'user';
+  const lLow = normalizeEmailToken(last) || 'name';
 
   const formats: string[] = [];
 
@@ -147,5 +238,7 @@ export function formatListAsCsv(items: IdentityRecord[]): string {
 }
 
 export function formatListAsPlain(items: IdentityRecord[]): string {
-  return items.map((item, idx) => `[${String(idx + 1).padStart(2, '0')}]\n${formatIdentityPlain(item)}`).join('\n\n');
+  return items
+    .map((item, idx) => `[${String(idx + 1).padStart(2, '0')}]\n${formatIdentityPlain(item)}`)
+    .join('\n\n');
 }

@@ -5,7 +5,14 @@ import {
   formatIdentityPlain,
   generateBatch,
   generateIdentity,
+  generatePassword,
 } from './data/identities';
+import {
+  NameDatabaseStats,
+  getNameDatabaseStats,
+  initNameDatabase,
+  subscribeNameDatabase,
+} from './data/nameDatabase';
 import { HardwareTopBar } from './components/HardwareTopBar';
 import { InstrumentDeck } from './components/InstrumentDeck';
 import { BatchExportSection } from './components/BatchExportSection';
@@ -27,6 +34,10 @@ export default function App() {
     passwordLength: 12,
   });
 
+  const [dbStats, setDbStats] = useState<NameDatabaseStats>(() =>
+    getNameDatabaseStats()
+  );
+
   const [historyList, setHistoryList] = useState<IdentityRecord[]>(() => {
     const initial = generateIdentity({
       gender: 'random',
@@ -42,6 +53,14 @@ export default function App() {
   );
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeNameDatabase(() => {
+      setDbStats(getNameDatabaseStats());
+    });
+    initNameDatabase();
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -76,9 +95,34 @@ export default function App() {
     [options, showQuickNotice]
   );
 
-  const handleChangeOptions = useCallback((partial: Partial<GeneratorOptions>) => {
-    setOptions((prev) => ({ ...prev, ...partial }));
-  }, []);
+  const handleRegeneratePassword = useCallback(() => {
+    if (!currentIdentity) return;
+    const nextPassword = generatePassword(options.passwordLength);
+    const updated: IdentityRecord = { ...currentIdentity, password: nextPassword };
+    setCurrentIdentity(updated);
+    setHistoryList((prev) =>
+      prev.map((item) => (item.id === updated.id ? updated : item))
+    );
+  }, [currentIdentity, options.passwordLength]);
+
+  const handleChangeOptions = useCallback(
+    (partial: Partial<GeneratorOptions>) => {
+      setOptions((prev) => ({ ...prev, ...partial }));
+
+      if (partial.passwordLength !== undefined && currentIdentity) {
+        const nextPassword = generatePassword(partial.passwordLength);
+        const updated: IdentityRecord = {
+          ...currentIdentity,
+          password: nextPassword,
+        };
+        setCurrentIdentity(updated);
+        setHistoryList((prev) =>
+          prev.map((item) => (item.id === updated.id ? updated : item))
+        );
+      }
+    },
+    [currentIdentity]
+  );
 
   const handleClearHistory = useCallback(() => {
     setHistoryList([]);
@@ -166,7 +210,9 @@ export default function App() {
           currentIdentity={currentIdentity}
           onSelectIdentity={setCurrentIdentity}
           onGenerate={handleGenerate}
+          onRegeneratePassword={handleRegeneratePassword}
           onClearHistory={handleClearHistory}
+          dbStats={dbStats}
           theme={theme}
           onToggleTheme={handleToggleTheme}
         />
